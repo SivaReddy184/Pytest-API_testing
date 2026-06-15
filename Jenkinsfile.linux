@@ -1,0 +1,162 @@
+// Alternative: Linux/Unix Compatible Jenkinsfile
+// Use this file if your Jenkins agent runs on Linux/Mac
+// Save as: Jenkinsfile.linux
+
+pipeline {
+    agent any
+
+    triggers {
+        // Poll SCM every hour to detect changes
+        pollSCM('H * * * *')
+        
+        // Schedule daily at 7:00 AM
+        cron('0 7 * * *')
+    }
+
+    parameters {
+        choice(
+            name: 'TEST_SUITE',
+            choices: ['regression', 'smoke', 'products', 'brands', 'search', 'auth', 'user'],
+            description: 'Select which test suite to run'
+        )
+    }
+
+    options {
+        // Keep last 10 builds
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        // Add timestamps to console output
+        timestamps()
+        // Timeout after 30 minutes
+        timeout(time: 30, unit: 'MINUTES')
+    }
+
+    environment {
+        // Set Python path and virtual environment
+        PYTHON_VERSION = '3.11'
+        VENV_DIR = '${WORKSPACE}/venv'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    echo "========== Checking out code =========="
+                    checkout scm
+                }
+            }
+        }
+
+        stage('Setup Environment') {
+            steps {
+                script {
+                    echo "========== Setting up Python environment =========="
+                    
+                    // Create virtual environment
+                    sh '''
+                        python3 -m venv venv
+                        source venv/bin/activate
+                    '''
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    echo "========== Installing dependencies =========="
+                    
+                    sh '''
+                        source venv/bin/activate
+                        pip install --upgrade pip
+                        pip install -r requirements.txt
+                    '''
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                script {
+                    echo "========== Running ${TEST_SUITE} tests =========="
+                    
+                    sh '''
+                        source venv/bin/activate
+                        
+                        case "${TEST_SUITE}" in
+                            smoke)
+                                pytest -m smoke -v --html=reports/report.html --self-contained-html --tb=short
+                                ;;
+                            regression)
+                                pytest -v --html=reports/report.html --self-contained-html --tb=short
+                                ;;
+                            *)
+                                pytest -m ${TEST_SUITE} -v --html=reports/report.html --self-contained-html --tb=short
+                                ;;
+                        esac
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                echo "========== Test Execution Complete =========="
+                
+                // Archive test reports
+                archiveArtifacts artifacts: 'reports/report.html', 
+                                 allowEmptyArchive: true,
+                                 onlyIfSuccessful: false
+                
+                // Publish HTML test report
+                publishHTML([
+                    reportDir: 'reports',
+                    reportFiles: 'report.html',
+                    reportName: 'Test Report',
+                    keepAll: true
+                ])
+                
+                // Collect JUnit test results if available
+                junit testResults: 'reports/*.xml', 
+                      allowEmptyResults: true
+            }
+        }
+        
+        success {
+            script {
+                echo "========== Tests PASSED =========="
+                // Uncomment below for email notifications
+                // emailext(
+                //     subject: 'API Tests - PASSED',
+                //     body: 'Test suite completed successfully. Build: ${BUILD_URL}',
+                //     to: 'team@example.com'
+                // )
+            }
+        }
+        
+        failure {
+            script {
+                echo "========== Tests FAILED =========="
+                // Uncomment below for email notifications
+                // emailext(
+                //     subject: 'API Tests - FAILED',
+                //     body: 'Test suite failed. Check details: ${BUILD_URL}console',
+                //     to: 'team@example.com'
+                // )
+            }
+        }
+        
+        cleanup {
+            script {
+                echo "========== Cleaning up =========="
+                // Clean up virtual environment
+                sh '''
+                    rm -rf venv
+                    find . -type d -name __pycache__ -exec rm -r {} +
+                '''
+                cleanWs()
+            }
+        }
+    }
+}
