@@ -100,17 +100,51 @@ The Jenkinsfile includes two triggers:
 ## Step 6: Configure Notifications
 
 ### Email Notifications:
-1. In the Jenkinsfile, uncomment the email lines:
-   ```groovy
-   mail to: 'your-email@example.com', 
-        subject: 'Tests Passed', 
-        body: 'All tests passed successfully'
-   ```
 
-2. Configure SMTP in Jenkins:
-   - Go to **Manage Jenkins** → **Configure System**
-   - Find **Email Notification**
-   - Configure SMTP settings
+**Email Configuration** (Dynamic from .env or Jenkins Credentials):
+- The Jenkinsfile now uses the `BUILD_RESULTS_EMAIL` environment variable
+- This reads from:
+  1. **Jenkins Secret Text Credential** (recommended for CI/CD)
+  2. **Fallback**: .env file value
+  3. **Default**: sivatestqa@gmail.com
+
+**Setup Options:**
+
+#### Option A: Using Jenkins Credentials (Recommended)
+1. Go to **Manage Jenkins** → **Manage Credentials**
+2. Click **Global** → **Add Credentials**
+3. Select **Secret text**
+4. Paste your email address in the **Secret** field
+5. Set **ID** to `BUILD_RESULTS_EMAIL`
+6. Click **Create**
+
+#### Option B: Using .env File
+1. Ensure `.env` file has:
+   ```
+   BUILD_RESULTS_EMAIL=your-email@example.com
+   ```
+2. Install **EnvInject** plugin on Jenkins:
+   - **Manage Jenkins** → **Manage Plugins**
+   - Search for "EnvInject"
+   - Install and restart Jenkins
+
+3. In job configuration:
+   - Check **Inject environment variables to the build process**
+   - Path to properties file: `.env`
+
+#### Option C: Manual Configuration
+Edit the Jenkinsfile and replace `BUILD_RESULTS_EMAIL` with your email directly.
+
+**Configure SMTP in Jenkins:**
+1. Go to **Manage Jenkins** → **Configure System**
+2. Find **Email Notification** or **Extended Email Notification**
+3. Configure SMTP settings:
+   - SMTP Server: `smtp.gmail.com` (for Gmail)
+   - Default user email suffix: `@gmail.com`
+   - SMTP Port: `587` (with TLS)
+   - Or `465` (with SSL)
+4. Enable **Use SMTP Authentication**
+5. Add your Gmail credentials
 
 ### Slack Notifications:
 1. Install `Slack Notification` plugin

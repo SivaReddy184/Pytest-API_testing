@@ -31,6 +31,8 @@ pipeline {
         PYTHON_VERSION = '3.11'
         VENV_DIR = '${WORKSPACE}/venv'
         PATH = "${VENV_DIR}/Scripts;${PATH}"
+        // Email configuration from .env file or Jenkins credentials
+        BUILD_RESULTS_EMAIL = credentials('BUILD_RESULTS_EMAIL') ?: 'sivatestqa@gmail.com'
     }
 
     stages {
@@ -123,7 +125,7 @@ pipeline {
             script {
                 echo "========== Tests PASSED =========="
                 // Add email or Slack notification for success
-                // mail to: 'team@example.com', subject: 'Tests Passed', body: 'All tests passed successfully'
+                mail to: "${BUILD_RESULTS_EMAIL}", subject: 'Tests Passed', body: 'All tests passed successfully'
             }
         }
         
@@ -131,7 +133,7 @@ pipeline {
             script {
                 echo "========== Tests FAILED =========="
                 // Add email or Slack notification for failure
-                // mail to: 'team@example.com', subject: 'Tests Failed', body: 'Some tests failed. Check the report.'
+                mail to: "${BUILD_RESULTS_EMAIL}", subject: 'Tests Failed', body: 'Some tests failed. Check the report.'
             }
         }
         
