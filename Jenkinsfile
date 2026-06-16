@@ -29,10 +29,11 @@ pipeline {
     environment {
         // Set Python path and virtual environment
         PYTHON_VERSION = '3.11'
-        VENV_DIR = '${WORKSPACE}/venv'
+        // CHANGED: Use double quotes so ${WORKSPACE} evaluates correctly
+        VENV_DIR = "${WORKSPACE}/venv"
         PATH = "${VENV_DIR}/Scripts;${PATH}"
         // Email configuration from .env file or Jenkins credentials
-        BUILD_RESULTS_EMAIL = credentials('BUILD_RESULTS_EMAIL') ?: 'sivatestqa@gmail.com'
+        BUILD_RESULTS_EMAIL = credentials('BUILD_RESULTS_EMAIL')
     }
 
     stages {
