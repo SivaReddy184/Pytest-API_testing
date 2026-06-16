@@ -82,15 +82,18 @@ pipeline {
                     sh '''
                         source venv/bin/activate
                         
+                        # Create reports directory if it doesn't exist
+                        mkdir -p reports
+                        
                         case "${TEST_SUITE}" in
                             smoke)
-                                pytest -m smoke -v --html=reports/report.html --self-contained-html --tb=short
+                                pytest -m smoke -v --html=reports/report.html --self-contained-html --tb=short --capture=no
                                 ;;
                             regression)
-                                pytest -v --html=reports/report.html --self-contained-html --tb=short
+                                pytest -v --html=reports/report.html --self-contained-html --tb=short --capture=no
                                 ;;
                             *)
-                                pytest -m ${TEST_SUITE} -v --html=reports/report.html --self-contained-html --tb=short
+                                pytest -m ${TEST_SUITE} -v --html=reports/report.html --self-contained-html --tb=short --capture=no
                                 ;;
                         esac
                     '''

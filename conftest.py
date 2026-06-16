@@ -81,3 +81,24 @@ def managed_user(api_client: APIClient):
         data={"email": email, "password": payload["password"]},
     )
     logger.info("managed_user deleted: %s", email)
+
+
+# ---------------------------------------------------------------------------
+# HTML Report Enhancement Hook
+# ---------------------------------------------------------------------------
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_configure(config):
+    """
+    Ensures the reports directory exists before tests run.
+    """
+    import os
+    reports_dir = "reports"
+    if not os.path.exists(reports_dir):
+        os.makedirs(reports_dir)
+        logger.info("Created reports directory: %s", reports_dir)
+
+
+def pytest_html_report_title(report):
+    """Customize HTML report title."""
+    report.title = "Automation Exercise API Test Report"

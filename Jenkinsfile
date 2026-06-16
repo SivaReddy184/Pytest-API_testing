@@ -79,12 +79,15 @@ pipeline {
                     bat '''
                         call venv\\Scripts\\activate.bat
                         
+                        REM Create reports directory if it doesn't exist
+                        if not exist "reports" mkdir reports
+                        
                         if "%TEST_SUITE%"=="smoke" (
-                            pytest -m smoke -v --html=reports/report.html --self-contained-html --tb=short
+                            pytest -m smoke -v --html=reports/report.html --self-contained-html --tb=short --capture=no
                         ) else if "%TEST_SUITE%"=="regression" (
-                            pytest -v --html=reports/report.html --self-contained-html --tb=short
+                            pytest -v --html=reports/report.html --self-contained-html --tb=short --capture=no
                         ) else (
-                            pytest -m %TEST_SUITE% -v --html=reports/report.html --self-contained-html --tb=short
+                            pytest -m %TEST_SUITE% -v --html=reports/report.html --self-contained-html --tb=short --capture=no
                         )
                     '''
                 }
