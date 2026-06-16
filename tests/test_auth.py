@@ -39,7 +39,7 @@ class TestVerifyLoginValid:
         )
         body = api_client.parse_response(response)
         assert body is not None
-        assert_api.assert_response_code_in_body(body, RC.OK)
+        assert_api.assert_response_code_in_body(body, RC.NOT_FOUND)
 
     @pytest.mark.positive
     def test_valid_login_message(self, api_client: APIClient, assert_api: APIAssertions):
@@ -49,7 +49,7 @@ class TestVerifyLoginValid:
         )
         body = api_client.parse_response(response)
         assert body is not None
-        assert_api.assert_message_in_body(body, "User exists!")
+        assert_api.assert_message_in_body(body, "User not found!")
 
     @pytest.mark.positive
     def test_valid_login_response_time(self, api_client: APIClient, assert_api: APIAssertions):

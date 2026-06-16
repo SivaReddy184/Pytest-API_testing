@@ -12,7 +12,7 @@ pipeline {
     parameters {
         choice(
             name: 'TEST_SUITE',
-            choices: ['regression', 'smoke', 'products', 'brands', 'search', 'auth', 'user'],
+            choices: ['smoke', 'regression', 'products', 'brands', 'search', 'auth', 'user'],
             description: 'Select which test suite to run (default: regression for auto-triggered builds)'
         )
     }
